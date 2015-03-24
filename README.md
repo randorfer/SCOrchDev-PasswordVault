@@ -1,2 +1,2 @@
 # SCOrchDev-PasswordVault
-PowerShell module for creating retrieveing and deleteing password vault entries
+PowerShell module for creating retrieving and deleteing password vault entries
