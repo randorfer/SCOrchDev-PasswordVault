@@ -12,7 +12,7 @@
 RootModule = '.\SCOrchDev-PasswordVault.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.4'
+ModuleVersion = '2.0.0'
 
 # ID used to uniquely identify this module
 GUID = '1ef339ab-57b3-4ea9-bedb-af2780f0e995'
@@ -27,7 +27,7 @@ CompanyName = 'SCOrchDev'
 Copyright = '(c) SCOrchDev. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Used for interacting with Password Vault'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '4.0'
@@ -81,7 +81,7 @@ AliasesToExport = '*'
 ModuleList = @('SCOrchDev-PasswordVault')
 
 # List of all files packaged with this module
-FileList = @('SCOrchDev-PasswordVault.psd1', 'SCOrchDev-PasswordVault.psm1')
+FileList = @('SCOrchDev-PasswordVault.psd1', 'SCOrchDev-PasswordVault.psm1', 'SCOrchDev-PasswordVault.tests.ps1', 'LICENSE', 'README.md')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess
 # PrivateData = ''
