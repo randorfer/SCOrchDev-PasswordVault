@@ -68,10 +68,8 @@ if ($PSVersionTable.PSVersion.Major -ge 3)
 {
     $error.Clear()
     Describe 'Clean treatment of the $error variable' {
-        Context 'A Context' {
-            It 'Performs a successful test' {
-                $true | Should Be $true
-            }
+        It 'Performs a successful test' {
+            $true | Should Be $true
         }
 
         It 'Did not add anything to the $error variable' {
@@ -125,6 +123,25 @@ Describe 'Style rules' {
         if ($badFiles.Count -gt 0)
         {
             throw "The following files do not end with a newline: `r`n`r`n$($badFiles -join "`r`n")"
+        }
+    }
+}
+
+Describe 'Storing Credentials' {
+    $Credential = New-Object -TypeName pscredential 'testcred\cred', ('qwerty' | ConvertTo-SecureString -AsPlainText -Force)
+    Context 'Resource Specified' {
+        $Resource = [guid]::NewGuid() -as [string]
+        It 'Should store a pscredential object' {
+            Set-PasswordVaultCredential -Credential $Credential -Resource $Resource
+        }
+        It 'Should be able to retrieve a credential' {
+            $TestCredential = Get-PasswordVaultCredential -UserName $Credential.UserName -AsPSCredential -Resource $Resource
+            $TestCredential.UserName | Should Be $Credential.UserName
+            $TestCredential.GetNetworkCredential().Password | Should Be $Credential.GetNetworkCredential().Password
+        }
+        It 'Should be able to remove a credential' {
+            Remove-PasswordVaultCredential -UserName $Credential.UserName -Resource $Resource
+            { Get-PasswordVaultCredential -UserName $Credential.UserName -Resource $Resource } | Should Throw
         }
     }
 }

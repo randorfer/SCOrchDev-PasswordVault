@@ -8,8 +8,8 @@
 .Parameter Resource
     The resource store this credential is stored in
 
-.Parameter WithPassword
-    Use this flag if you would to includes the password of the object
+.Parameter AsPSCredential
+    Use this flag if you would like to retrieve a PSCredential Type object
 
 .Example
     Get-PasswordVaultCredential
@@ -26,24 +26,35 @@
 Function Get-PasswordVaultCredential
 {
     Param(
-        [Parameter(Mandatory = $False, ValueFromPipeline = $True)]
+        [Parameter(
+            Mandatory = $False,
+            ValueFromPipeline = $True,
+            Position = 0)]
         [AllowNull()]
         [string]
-        $UserName,
+        $UserName = $null,
 
-        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
+        [Parameter(
+            Mandatory = $False,
+            ValueFromPipeline = $True,
+            Position = 1
+        )]
         [AllowNull()]
         [string]
-        $Resource,
+        $Resource = $null,
 
-        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
+        [Parameter(
+            Mandatory = $False,
+            ValueFromPipeline = $True,
+            Position= 2
+        )]
         [Switch]
-        $WithPassword
+        $AsPSCredential
     )
     try
     {
         [void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]
-        $PasswordVault = new-object Windows.Security.Credentials.PasswordVault
+        $PasswordVault = New-Object -TypeName Windows.Security.Credentials.PasswordVault
         if($UserName -and $Resource)
         {
             $Credential = $PasswordVault.Retrieve($Resource,$UserName)
@@ -61,11 +72,12 @@ Function Get-PasswordVaultCredential
             $Credential = $PasswordVault.RetrieveAll()
         }
 
-        if($WithPassword.IsPresent)
+        if($AsPSCredential.IsPresent)
         {
             $Credential | ForEach-Object { 
                 $_.RetrievePassword(); 
-                $_
+                $SecurePassword = $_.Password | ConvertTo-SecureString -AsPlainText -Force
+                New-Object -TypeName pscredential -ArgumentList $_.UserName, $SecurePassword
             }
         }
         else
@@ -80,7 +92,7 @@ Function Get-PasswordVaultCredential
             'ErrorMessage' = (Convert-ExceptionToString -Exception $_) ;
             'UserName' = $UserName ;
             'Resource' = $Resource ;
-            'WithPassword' = $WithPassword.IsPresent
+            'AsPSCredential' = $AsPSCredential.IsPresent
         }
         Switch -CaseSensitive ($ExceptionInfo.Type)
         {
@@ -124,41 +136,33 @@ Function Get-PasswordVaultCredential
 Function Set-PasswordVaultCredential
 {
     Param(
-        [Parameter(Mandatory = $True, ValueFromPipeline = $True)]
-        [AllowNull()]
-        [string]
-        $UserName,
+        [Parameter(
+            Mandatory = $True,
+            ValueFromPipeline = $True,
+            Position = 0
+        )]
+        [pscredential]
+        $Credential,
 
-        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
-        [AllowNull()]
+        [Parameter(
+            Mandatory = $False,
+            ValueFromPipeline = $True,
+            Position = 1
+        )]
         [string]
-        $Resource,
-
-        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
-        [AllowNull()]
-        [string]
-        $Password
+        $Resource = ([guid]::NewGuid()) -as [string]
     )
     try
     {
         [void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]
-        $PasswordVault = new-object Windows.Security.Credentials.PasswordVault
+        $PasswordVault = New-Object -TypeName Windows.Security.Credentials.PasswordVault
     
-        $Credential = New-Object Windows.Security.Credentials.PasswordCredential
-        $Credential.UserName = $UserName
-        $Credential.Resource = $Resource
-        $Credential.Password = $Password
+        $VaultCredential = New-Object -TypeName Windows.Security.Credentials.PasswordCredential
+        $VaultCredential.UserName = $Credential.UserName
+        $VaultCredential.Resource = $Resource
+        $VaultCredential.Password = $Credential.GetNetworkCredential().Password
 
-        try
-        {
-            $OldCredential = Get-PasswordVaultCredential -Name $UserName -Resource $Resource
-            $PasswordVault.Remove($OldCred)
-            $PasswordVault.Add($Credential)
-        }
-        catch
-        {
-            $PasswordVault.Add($Credential)
-        }
+        $PasswordVault.Add($VaultCredential)
     }
     catch
     {
@@ -215,20 +219,28 @@ Function Set-PasswordVaultCredential
 Function Remove-PasswordVaultCredential
 {
     Param(
-        [Parameter(Mandatory = $False, ValueFromPipeline = $True)]
+        [Parameter(
+            Mandatory = $False, 
+            ValueFromPipeline = $True,
+            Position = 0
+        )]
         [AllowNull()]
         [string]
-        $UserName,
+        $UserName = $null,
 
-        [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
+        [Parameter(
+            Mandatory = $False, 
+            ValueFromPipelineByPropertyName = $True,
+            Position = 1
+        )]
         [AllowNull()]
         [string]
-        $Resource
+        $Resource = $null
     )
     try
     {
         [void][Windows.Security.Credentials.PasswordVault,Windows.Security.Credentials,ContentType=WindowsRuntime]
-        $PasswordVault = new-object Windows.Security.Credentials.PasswordVault
+        $PasswordVault = New-Object -TypeName Windows.Security.Credentials.PasswordVault
         $Parameters = @{ 
             'UserName' = $UserName ;
             'Resource' = $Resource ;
