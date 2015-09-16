@@ -12,7 +12,7 @@
 RootModule = '.\SCOrchDev-PasswordVault.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1'
+ModuleVersion = '2.0.2'
 
 # ID used to uniquely identify this module
 GUID = '1ef339ab-57b3-4ea9-bedb-af2780f0e995'
@@ -48,7 +48,7 @@ PowerShellVersion = '4.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @('SCOrchDev-Exception')
+RequiredModules = @('SCOrchDev-Exception')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
